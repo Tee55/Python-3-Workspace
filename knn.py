@@ -95,7 +95,9 @@ def compute(x):
     band_array = np.asarray(band_array)
     rp_ratio_array = np.asarray(rp_ratio_array)
 
-    #band_DF = pd.DataFrame(band_array)
+    band_DF = pd.DataFrame(band_array)
+    print(band_DF)
+
     #ratio_DF = pd.DataFrame(rp_ratio_array)
 
     rp_features = relative_power_lab(rp_ratio_array)
@@ -133,7 +135,6 @@ def lda(X_train, y_train, X_test, y_test):
     prediction = clf.predict(X_test)
 
     cal_cr_balance_cr(prediction, y_test)
-
 
 def knn(X_train, y_train, X_test, y_test):
 
