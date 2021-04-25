@@ -156,7 +156,7 @@ def lda(X_train, y_train, X_val, y_val):
 
     print(prediction)
 
-    cal_cr_balance_cr(prediction, y_val)
+    #cal_cr_balance_cr(prediction, y_val)
 
     #Plot train data
     for index, X in enumerate(X_train):
@@ -183,7 +183,7 @@ def knn(X_train, y_train, X_val, y_val):
 
     prediction = classifier.predict(X_val)
 
-    cal_cr_balance_cr(prediction, y_val)
+    #cal_cr_balance_cr(prediction, y_val)
 
 def cal_cr_balance_cr(prediction, y_val):
 
