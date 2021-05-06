@@ -125,7 +125,7 @@ def compute(x):
 
     return rp_features
 
-def find_first_two_features(data_raw):
+def fisher(data_raw):
 
     train_features = []
     train_labels = []
@@ -158,7 +158,7 @@ def find_first_two_features(data_raw):
 
     #print(idx)
 
-    return idx[0], idx[1]
+    return idx
 
 def cal_cr_balance_cr(prediction, y_val):
 
@@ -232,6 +232,7 @@ def relative_power_lab(rp_ratio_array):
 def lda(X_train, y_train, X_val, y_val):
 
     lda = LinearDiscriminantAnalysis()
+
     lda_object = lda.fit(X_train, y_train)
 
     prediction = lda.predict(X_val)
@@ -273,6 +274,11 @@ def lda(X_train, y_train, X_val, y_val):
 def lda_loo(X_train, y_train, X_val, y_val):
 
     lda = LinearDiscriminantAnalysis()
+
+    if X_train.ndim == 1:
+        X_train = X_train.reshape(-1, 1)
+        X_val = X_val.reshape(-1, 1)
+
     lda_object = lda.fit(X_train, y_train)
 
     prediction = lda.predict(X_val)
@@ -327,7 +333,10 @@ def main():
     val_X = []
     val_y = []
 
-    first_feature, second_feature = find_first_two_features(data_raw)
+    idx = fisher(data_raw)
+
+    first_feature = idx[0]
+    second_feature = idx[1]
 
     for index, patient_subjects in enumerate(data_raw[0:23]):
     
@@ -375,7 +384,10 @@ def leave_one_out():
     X = []
     y = []
 
-    first_feature, second_feature = find_first_two_features(data_raw)
+    idx = fisher(data_raw)
+
+    first_feature = idx[0]
+    second_feature = idx[1]
 
     with Bar('Processing') as bar:
         for index, subjects in enumerate(data_raw):
@@ -426,9 +438,11 @@ def add_one_feature():
 
     com_CR = []
 
+    idx = fisher(data_raw)
+
     with Bar('Processing') as bar:
 
-        for feature_index in range(5, 47):
+        for feature_index in range(1, 6):
 
             X = []
             y = []
@@ -437,7 +451,10 @@ def add_one_feature():
             
                 features = compute(subjects[0])
 
-                X.append(features[0:feature_index])
+                for i in range(0, feature_index):
+
+                    X.append(features[i])
+
                 if index < 23:
                     y.append(patient)
                 else:
@@ -458,7 +475,7 @@ def add_one_feature():
                 val_X = np.asarray(val_X)
                 val_y = np.asarray(val_y)
 
-                pred = lda(train_X, train_y, val_X, val_y)
+                pred = lda_loo(train_X, train_y, val_X, val_y)
                 #pred = knn(train_X, train_y, val_X, val_y)
 
                 com_pred.append(pred)
@@ -478,6 +495,6 @@ def add_one_feature():
 
 if __name__ == '__main__':
     #main()
-    leave_one_out()
-    #add_one_feature()
+    #leave_one_out()
+    add_one_feature()
     
