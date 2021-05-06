@@ -205,6 +205,8 @@ def cal_acc(prediction, y_val):
 
     print(acc)
 
+    return acc
+
 
 def relative_power_lab(rp_ratio_array):
     
@@ -284,7 +286,6 @@ def lda_loo(X_train, y_train, X_val, y_val):
     prediction = lda.predict(X_val)
 
     '''
-
     fig, ax = plt.subplots()
 
     #Plot train data
@@ -426,7 +427,7 @@ def leave_one_out():
 
     com_pred = np.asarray(com_pred)
 
-    cal_acc(com_pred, y)
+    acc = cal_acc(com_pred, y)
 
 def add_one_feature():
 
@@ -434,9 +435,7 @@ def add_one_feature():
 
     data_raw = mat['data']
 
-    loo = LeaveOneOut()
-
-    com_CR = []
+    com_acc = []
 
     idx = fisher(data_raw)
 
@@ -451,9 +450,9 @@ def add_one_feature():
             
                 features = compute(subjects[0])
 
-                for i in range(0, feature_index):
+                feature_list_index = [index for index in idx[0:feature_index]]
 
-                    X.append(features[i])
+                X.append([features[i] for i in feature_list_index])
 
                 if index < 23:
                     y.append(patient)
@@ -463,7 +462,13 @@ def add_one_feature():
             X = np.asarray(X)
             y = np.asarray(y)
 
+            df = pd.DataFrame(X)
+
+            df.to_csv(str(feature_index) + ".csv")
+
             com_pred = []
+
+            loo = LeaveOneOut()
 
             for train_index, test_index in loo.split(X):
 
@@ -482,15 +487,16 @@ def add_one_feature():
 
             com_pred = np.asarray(com_pred)
 
-            CR, balance_CR = cal_cr_balance_cr(com_pred, y)
+            acc = cal_acc(com_pred, y)
 
-            com_CR.append(CR)
+            com_acc.append(acc)
 
             bar.next()
 
-    com_CR = np.asarray(com_CR)
+    print(com_acc)
+    print(com_acc.shape)
 
-    plt.plot(com_CR)
+    plt.plot(com_acc)
     plt.show()
 
 if __name__ == '__main__':
