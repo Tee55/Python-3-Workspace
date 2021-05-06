@@ -493,8 +493,9 @@ def add_one_feature():
 
             bar.next()
 
+    com_acc = np.asarray(com_acc)
+
     print(com_acc)
-    print(com_acc.shape)
 
     plt.plot(com_acc)
     plt.show()
