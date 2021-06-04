@@ -96,7 +96,45 @@ def decom():
 
     print(transformed.shape)
 
-    k_meanClus(transformed)
+    pred_y = k_meanClus(transformed)
+
+    class_comp(pred_y)
+
+def class_comp(pred_y):
+
+    image_gen = ImageDataGenerator(rescale = 1./255, shear_range = 0.2, zoom_range = 0.2, horizontal_flip = True)
+    test_data_gen = ImageDataGenerator(rescale = 1./255)
+
+    train = image_gen.flow_from_directory(train_path, target_size=(img_height, img_width), color_mode='rgb', class_mode='binary', batch_size=batch_size)
+    test = test_data_gen.flow_from_directory(test_path, target_size=(img_height, img_width), color_mode='rgb', shuffle=False, class_mode='binary', batch_size=batch_size)
+    valid = test_data_gen.flow_from_directory(valid_path, target_size=(img_height, img_width), color_mode='rgb', class_mode='binary', batch_size=batch_size)
+
+    cnn = create_model()
+
+    early = EarlyStopping(monitor='val_loss', mode='min', patience=3)
+    learning_rate_reduction = ReduceLROnPlateau(monitor='val_loss', patience=2, verbose=1, factor=0.3, min_lr=0.000001)
+
+    callbacks_list = [early, learning_rate_reduction]
+
+    weights = compute_class_weight('balanced', np.unique(train.classes), train.classes)
+    cw = dict(zip( np.unique(train.classes), weights))
+
+    cnn.fit(pred_y, epochs=25, validation_data=valid, class_weight=cw, callbacks=callbacks_list)
+
+    test_accu = cnn.evaluate(test)
+    print('The testing accuracy is :', test_accu[1]*100, '%')
+
+    preds = cnn.predict(test, verbose=1)
+
+    predictions = preds.copy()
+    predictions[predictions <= 0.5] = 0
+    predictions[predictions > 0.5] = 1
+
+    cm = pd.DataFrame(data=confusion_matrix(test.classes, predictions, labels=[0, 1]),index=["Actual Normal", "Actual Covid"],
+    columns=["Predicted Normal", "Predicted Covid"])
+    sns.heatmap(cm, annot=True, fmt="d")
+
+    plt.show()
 
 def create_model():
 
@@ -144,11 +182,16 @@ def k_meanClus(X):
 
     kmeans = KMeans(n_clusters=4, init='k-means++', max_iter=300, n_init=10, random_state=0)
     pred_y = kmeans.fit_predict(X)
+
+    '''
     plt.scatter(X[:,0], X[:,1])
     plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=300, c='red')
     plt.show()
+    '''
 
     print(pred_y)
+
+    return pred_y
 
 if __name__ == '__main__':
     #main()
